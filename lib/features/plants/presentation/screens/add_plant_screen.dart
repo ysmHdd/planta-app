@@ -2,8 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io'; // IMPORTANT pour File
 import 'package:planta_app/features/plants/domain/entities/plant_entity.dart';
 import 'package:planta_app/features/plants/presentation/bloc/plant_bloc.dart';
 import 'package:planta_app/features/plants/presentation/bloc/plant_event.dart';
@@ -20,7 +18,7 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
   final _nameController = TextEditingController();
   final _typeController = TextEditingController();
   final _intervalController = TextEditingController(text: '7');
-  File? _selectedImage; // CHANGE: Stocke le fichier image
+  String? _selectedImageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -36,9 +34,16 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
           key: _formKey,
           child: Column(
             children: [
-              // CHAMP IMAGE - CORRIGÉ
+              // CHAMP IMAGE
               GestureDetector(
-                onTap: _pickImage, // AJOUTÉ
+                onTap: () {
+                  // Optionnel: Tu peux ajouter la sélection d'image plus tard
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Fonctionnalité image à venir'),
+                    ),
+                  );
+                },
                 child: Container(
                   height: 150,
                   width: double.infinity,
@@ -47,12 +52,11 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.grey[400]!),
                   ),
-                  child: _selectedImage != null
+                  child: _selectedImageUrl != null
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: Image.file(
-                            // CORRIGÉ: Image.file au lieu de Image.network
-                            _selectedImage!,
+                          child: Image.network(
+                            _selectedImageUrl!,
                             fit: BoxFit.cover,
                           ),
                         )
@@ -66,7 +70,7 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Appuyez pour ajouter une photo',
+                              'Ajouter une photo',
                               style: TextStyle(color: Colors.grey[600]),
                             ),
                           ],
@@ -81,9 +85,6 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                   labelText: 'Nom de la plante',
                   prefixIcon: Icon(Icons.eco, color: Colors.green),
                   border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.green),
-                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -100,9 +101,6 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                   labelText: 'Type de plante',
                   prefixIcon: Icon(Icons.category, color: Colors.green),
                   border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.green),
-                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -119,9 +117,6 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                   labelText: 'Intervalle d\'arrosage (jours)',
                   prefixIcon: Icon(Icons.calendar_today, color: Colors.green),
                   border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.green),
-                  ),
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
@@ -142,31 +137,14 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                   backgroundColor: Colors.green[700],
                   foregroundColor: Colors.white,
                   minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
                 ),
-                child: const Text(
-                  'Ajouter la Plante',
-                  style: TextStyle(fontSize: 16),
-                ),
+                child: const Text('Ajouter la Plante'),
               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-    if (image != null) {
-      setState(() {
-        _selectedImage = File(image.path);
-      });
-    }
   }
 
   void _addPlant() {
@@ -183,24 +161,38 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
         return;
       }
 
-      // POUR L'INSTANT, on envoie null pour imageUrl
-      // Plus tard tu pourras uploader vers Firebase Storage
+      final wateringInterval = int.parse(_intervalController.text);
+
+      // CORRECTION : Initialisation correcte pour avoir "À arroser aujourd'hui"
       final plant = PlantEntity(
         id: '',
         name: _nameController.text,
         type: _typeController.text,
-        wateringInterval: int.parse(_intervalController.text),
-        lastWatered: DateTime.now(),
-        nextWatering: DateTime.now().add(
-          Duration(days: int.parse(_intervalController.text)),
-        ),
-        imageUrl: null, // TEMPORAIREMENT null
+        wateringInterval: wateringInterval,
+        // CORRECTION : La plante a été arrosée il y a X jours, pas aujourd'hui
+        lastWatered: DateTime.now().subtract(Duration(days: wateringInterval)),
+        nextWatering: DateTime.now(), // À arroser aujourd'hui
+        imageUrl: _selectedImageUrl,
         userId: user.uid,
       );
 
-      print('✅ DEBUG - Plant créée avec userId: ${plant.userId}');
+      print('🌱 DEBUG - Nouvelle plante créée:');
+      print('   - Nom: ${plant.name}');
+      print('   - Intervalle: ${plant.wateringInterval} jours');
+      print('   - LastWatered: ${plant.lastWatered}');
+      print('   - NextWatering: ${plant.nextWatering}');
+      print('   - Statut: ${plant.wateringStatus}');
+      print('   - UserId: ${plant.userId}');
 
       context.read<PlantBloc>().add(AddPlantEvent(plant));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Plante ajoutée avec succès !'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
       Navigator.pop(context);
     }
   }

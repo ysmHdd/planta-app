@@ -37,7 +37,7 @@ class PlantRepositoryImpl implements PlantRepository {
   }
 
   @override
-  Future<void> waterPlant(String plantId) async {
-    await dataSource.waterPlant(plantId);
+  Future<void> waterPlant(String plantId, DateTime wateringDate) async {
+    await dataSource.waterPlant(plantId, wateringDate);
   }
 }

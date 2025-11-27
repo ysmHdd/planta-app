@@ -6,7 +6,10 @@ abstract class PlantDataSource {
   Future<String> addPlant(PlantModel plantModel);
   Future<void> updatePlant(PlantModel plantModel);
   Future<void> deletePlant(String plantId);
-  Future<void> waterPlant(String plantId);
+  Future<void> waterPlant(
+    String plantId,
+    DateTime wateringDate,
+  ); // ← MODIFIÉ ICI
   Stream<List<PlantModel>> getPlants(String userId);
 }
 
@@ -26,7 +29,6 @@ class PlantDataSourceImpl implements PlantDataSource {
       id: plantModel.id,
       name: plantModel.name,
       type: plantModel.type,
-      // location: plantModel.location,
       wateringInterval: plantModel.wateringInterval,
       lastWatered: plantModel.lastWatered,
       nextWatering: plantModel.nextWatering,
@@ -54,23 +56,30 @@ class PlantDataSourceImpl implements PlantDataSource {
   }
 
   @override
-  Future<void> waterPlant(String plantId) async {
+  Future<void> waterPlant(String plantId, DateTime wateringDate) async {
+    // ← MODIFIÉ ICI
     try {
       // 1. Récupérer la plante actuelle
       final doc = await _firestore.collection('plants').doc(plantId).get();
       if (doc.exists) {
         final plantData = doc.data()!;
 
-        // 2. Calculer les nouvelles dates
-        final DateTime now = DateTime.now();
+        // 2. Calculer les nouvelles dates avec la date passée en paramètre
         final int wateringInterval = plantData['wateringInterval'] ?? 7;
-        final DateTime nextWatering = now.add(Duration(days: wateringInterval));
+        final DateTime nextWatering = wateringDate.add(
+          Duration(days: wateringInterval),
+        );
 
         // 3. Mettre à jour la plante
         await _firestore.collection('plants').doc(plantId).update({
-          'lastWatered': now,
-          'nextWatering': nextWatering,
+          'lastWatered': Timestamp.fromDate(
+            wateringDate,
+          ), // ← UTILISE wateringDate
+          'nextWatering': Timestamp.fromDate(nextWatering),
+          'updatedAt': FieldValue.serverTimestamp(),
         });
+      } else {
+        throw Exception('Plante non trouvée');
       }
     } catch (e) {
       throw Exception('Erreur lors de l\'arrosage: $e');
@@ -79,14 +88,24 @@ class PlantDataSourceImpl implements PlantDataSource {
 
   @override
   Stream<List<PlantModel>> getPlants(String userId) {
+    print('🔍 DEBUG - Chargement plantes pour user: $userId');
+
     return _firestore
         .collection('plants')
         .where('userId', isEqualTo: userId)
+        .orderBy('nextWatering')
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
+        .map((snapshot) {
+          print('📦 DEBUG - ${snapshot.docs.length} plantes trouvées');
+          for (var doc in snapshot.docs) {
+            final data = doc.data();
+            print('   - ${data['name']} (id: ${doc.id})');
+            print('     userId: ${data['userId']}');
+            print('     nextWatering: ${data['nextWatering']}');
+          }
+          return snapshot.docs
               .map((doc) => PlantModel.fromMap(doc.data(), doc.id))
-              .toList(),
-        );
+              .toList();
+        });
   }
 }
