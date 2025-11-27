@@ -23,9 +23,7 @@ class PlantsListScreen extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => AddPlantScreen(), // SANS PARAMÈTRE
-                ),
+                MaterialPageRoute(builder: (context) => const AddPlantScreen()),
               );
             },
           ),
@@ -41,7 +39,24 @@ class PlantsListScreen extends StatelessWidget {
             final plants = state.plants;
 
             if (plants.isEmpty) {
-              return const Center(child: Text('Aucune plante ajoutée yet!'));
+              return const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.local_florist, size: 80, color: Colors.grey),
+                    SizedBox(height: 16),
+                    Text(
+                      'Aucune plante ajoutée',
+                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Ajoutez votre première plante !',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+              );
             }
 
             return ListView.builder(
@@ -57,25 +72,71 @@ class PlantsListScreen extends StatelessWidget {
                   ),
                   color: needsWatering ? Colors.orange[50] : null,
                   child: ListTile(
-                    leading: Icon(
-                      Icons.local_florist,
-                      color: needsWatering ? Colors.orange : Colors.green,
+                    leading: Stack(
+                      children: [
+                        // IMAGE DE LA PLANTE
+                        plant.imageUrl != null && plant.imageUrl!.isNotEmpty
+                            ? CircleAvatar(
+                                backgroundImage: NetworkImage(plant.imageUrl!),
+                                radius: 25,
+                              )
+                            : CircleAvatar(
+                                backgroundColor: needsWatering
+                                    ? Colors.orange[100]
+                                    : Colors.green[100],
+                                child: Icon(
+                                  Icons.local_florist,
+                                  color: needsWatering
+                                      ? Colors.orange
+                                      : Colors.green,
+                                ),
+                                radius: 25,
+                              ),
+
+                        // INDICATEUR BESOIN D'EAU (PETIT CERCLE ROUGE)
+                        if (needsWatering)
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 12,
+                                minHeight: 12,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
-                    title: Text(plant.name),
+                    title: Text(
+                      plant.name,
+                      style: TextStyle(
+                        fontWeight: needsWatering
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                      ),
+                    ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Type: ${plant.type}'),
-                        Text('Lieu: ${plant.location}'),
+                        const SizedBox(height: 4),
                         Text(
                           needsWatering
-                              ? '🌵 Besoin d\'eau!'
+                              ? '🌵 Besoin d\'eau !'
                               : 'Prochain arrosage: ${_formatDate(plant.nextWatering)}',
                           style: TextStyle(
-                            color: needsWatering ? Colors.red : Colors.grey,
+                            color: needsWatering
+                                ? Colors.red
+                                : Colors.grey[600],
                             fontWeight: needsWatering
                                 ? FontWeight.bold
                                 : FontWeight.normal,
+                            fontSize: 12,
                           ),
                         ),
                       ],
@@ -85,24 +146,39 @@ class PlantsListScreen extends StatelessWidget {
                             icon: const Icon(
                               Icons.water_drop,
                               color: Colors.blue,
+                              size: 30,
                             ),
+                            tooltip: 'Arroser la plante',
                             onPressed: () {
-                              // Marquer comme arrosée
                               context.read<PlantBloc>().add(
                                 WaterPlantEvent(plant.id),
                               );
                             },
                           )
-                        : null,
+                        : Icon(
+                            Icons.check_circle,
+                            color: Colors.green[400],
+                            size: 30,
+                          ),
                     onTap: () {
                       // Naviguer vers détail de la plante
+                      // Navigator.push(...);
                     },
                   ),
                 );
               },
             );
           } else {
-            return const Center(child: Text('Chargez vos plantes'));
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Chargement de vos plantes...'),
+                ],
+              ),
+            );
           }
         },
       ),
@@ -110,12 +186,11 @@ class PlantsListScreen extends StatelessWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => AddPlantScreen(), // SANS PARAMÈTRE
-            ),
+            MaterialPageRoute(builder: (context) => const AddPlantScreen()),
           );
         },
-        child: const Icon(Icons.add),
+        backgroundColor: Colors.green,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

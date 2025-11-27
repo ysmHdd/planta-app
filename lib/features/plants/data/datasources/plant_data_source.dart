@@ -26,7 +26,7 @@ class PlantDataSourceImpl implements PlantDataSource {
       id: plantModel.id,
       name: plantModel.name,
       type: plantModel.type,
-      location: plantModel.location,
+      // location: plantModel.location,
       wateringInterval: plantModel.wateringInterval,
       lastWatered: plantModel.lastWatered,
       nextWatering: plantModel.nextWatering,

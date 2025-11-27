@@ -3,7 +3,7 @@ class PlantEntity {
   final String id;
   final String name;
   final String type;
-  final String location;
+  // final String location;
   final int wateringInterval;
   final DateTime lastWatered;
   final DateTime nextWatering;
@@ -14,7 +14,7 @@ class PlantEntity {
     required this.id,
     required this.name,
     required this.type,
-    required this.location,
+    // required this.location,
     required this.wateringInterval,
     required this.lastWatered,
     required this.nextWatering,
