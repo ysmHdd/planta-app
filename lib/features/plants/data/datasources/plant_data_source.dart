@@ -1,5 +1,5 @@
-// features/plants/data/datasources/plant_data_source.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:planta_app/features/plants/data/models/plant_model.dart';
 
 abstract class PlantDataSource {
@@ -12,12 +12,31 @@ abstract class PlantDataSource {
 
 class PlantDataSourceImpl implements PlantDataSource {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   Future<String> addPlant(PlantModel plantModel) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('Utilisateur non connecté');
+    }
+
+    // CRÉE UNE NOUVELLE PLANTE AVEC LE USER_ID
+    final plantWithUser = PlantModel(
+      id: plantModel.id,
+      name: plantModel.name,
+      type: plantModel.type,
+      location: plantModel.location,
+      wateringInterval: plantModel.wateringInterval,
+      lastWatered: plantModel.lastWatered,
+      nextWatering: plantModel.nextWatering,
+      imageUrl: plantModel.imageUrl,
+      userId: user.uid, // ← LE USER_ID ICI !
+    );
+
     final docRef = await _firestore
         .collection('plants')
-        .add(plantModel.toMap());
+        .add(plantWithUser.toMap());
     return docRef.id;
   }
 

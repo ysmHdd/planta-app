@@ -1,16 +1,26 @@
-# todo_app
+# Planta - Gestionnaire de Plantes
 
-A new Flutter project.
+Application Flutter pour gérer l'arrosage de vos plantes.
 
-## Getting Started
+## Fonctionnalités
 
-This project is a starting point for a Flutter application.
+- Ajouter/supprimer des plantes
+- Rappels d'arrosage
+- Authentification utilisateur
+- Thème sombre/clair
 
-A few resources to get you started if this is your first Flutter project:
+## Technologies
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- Flutter 3.x
+- Firebase Auth & Firestore
+- BLoC Pattern
+- Clean Architecture
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Installation
+
+```bash
+git clone https://github.com/TON_USERNAME/planta-app.git
+cd planta-app
+flutter pub get
+flutter run
+```

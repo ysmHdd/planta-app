@@ -10,8 +10,8 @@ import 'package:planta_app/features/plants/presentation/screens/add_plant_screen
 import 'package:planta_app/features/plants/presentation/screens/detail_plant_screen.dart';
 import 'package:planta_app/features/plants/presentation/screens/edit_plant_screen.dart';
 import 'package:planta_app/features/plants/presentation/screens/plants_list_screen.dart';
-
 import 'package:planta_app/features/plants/presentation/widgets/toolbar_action_theme_widget.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AppRouter {
   final AuthBloc authBloc;
@@ -102,12 +102,20 @@ class AppRouter {
             path: AppRoutes.addPlant,
             name: 'add_plant',
             builder: (context, state) {
-              // Récupérer l'userId depuis l'état d'authentification
-              final authState = context.read<AuthBloc>().state;
-              if (authState is AuthenticatedState) {
-                return AddPlantScreen(userId: authState.userId);
+              // Vérifie directement avec FirebaseAuth au lieu du AuthBloc
+              final user = FirebaseAuth.instance.currentUser;
+              if (user != null) {
+                return AddPlantScreen(); // Plus besoin de passer userId
               }
-              return const AddPlantScreen(userId: ''); // Fallback
+
+              // Si l'utilisateur n'est pas connecté, redirige vers la page de connexion
+              return const Scaffold(
+                body: Center(
+                  child: Text(
+                    'Veuillez vous connecter pour ajouter une plante',
+                  ),
+                ),
+              );
             },
           ),
           GoRoute(

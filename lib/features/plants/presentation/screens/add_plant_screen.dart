@@ -1,14 +1,14 @@
 // features/plants/presentation/screens/add_plant_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // AJOUTE CET IMPORT
 import 'package:planta_app/features/plants/domain/entities/plant_entity.dart';
 import 'package:planta_app/features/plants/presentation/bloc/plant_bloc.dart';
 import 'package:planta_app/features/plants/presentation/bloc/plant_event.dart';
 
 class AddPlantScreen extends StatefulWidget {
-  final String userId;
-
-  const AddPlantScreen({super.key, required this.userId});
+  // SUPPRIME le paramètre userId puisque tu vas le récupérer via FirebaseAuth
+  const AddPlantScreen({super.key});
 
   @override
   _AddPlantScreenState createState() => _AddPlantScreenState();
@@ -104,6 +104,22 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
 
   void _addPlant() {
     if (_formKey.currentState!.validate()) {
+      final user = FirebaseAuth.instance.currentUser;
+
+      // VÉRIFIE que l'utilisateur est connecté
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Erreur: Vous devez être connecté pour ajouter une plante',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // CRÉE la plante avec le VRAI userId
       final plant = PlantEntity(
         id: '', // sera généré par Firebase
         name: _nameController.text,
@@ -114,8 +130,11 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
         nextWatering: DateTime.now().add(
           Duration(days: int.parse(_intervalController.text)),
         ),
-        userId: widget.userId,
+        userId: user.uid, // ← LE VRAI USER_ID ICI !
       );
+
+      // DEBUG
+      print('✅ DEBUG - Plant créée avec userId: ${plant.userId}');
 
       context.read<PlantBloc>().add(AddPlantEvent(plant));
       Navigator.pop(context);

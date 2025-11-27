@@ -24,7 +24,7 @@ class PlantsListScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => AddPlantScreen(userId: userId),
+                  builder: (context) => AddPlantScreen(), // SANS PARAMÈTRE
                 ),
               );
             },
@@ -111,7 +111,7 @@ class PlantsListScreen extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => AddPlantScreen(userId: userId),
+              builder: (context) => AddPlantScreen(), // SANS PARAMÈTRE
             ),
           );
         },

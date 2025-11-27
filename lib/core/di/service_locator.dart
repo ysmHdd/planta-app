@@ -5,6 +5,8 @@ import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:planta_app/core/firebase/auth_service.dart';
 import 'package:planta_app/core/network/network_info.dart';
 import 'package:planta_app/core/router/app_router.dart';
+
+// AUTH
 import 'package:planta_app/features/auth/data/datasources/user_data_source.dart';
 import 'package:planta_app/features/auth/data/repositories/user_repository_impl.dart';
 import 'package:planta_app/features/auth/domain/repositories/user_repository.dart';
@@ -13,37 +15,41 @@ import 'package:planta_app/features/auth/domain/usecases/sign_in_user.dart';
 import 'package:planta_app/features/auth/domain/usecases/sign_out_user.dart';
 import 'package:planta_app/features/auth/presentation/blocs/auth/auth_bloc.dart';
 import 'package:planta_app/features/auth/presentation/blocs/register/register_bloc.dart';
-import 'package:planta_app/features/plants/presentation/bloc/plant_bloc.dart';
-import 'package:planta_app/features/plants/presentation/blocs/switchtheme_cubit.dart';
-import 'package:planta_app/firebase_options.dart';
+
+// PLANTS
+import 'package:planta_app/features/plants/data/datasources/plant_data_source.dart';
+import 'package:planta_app/features/plants/data/repositories/plant_repository_impl.dart';
+import 'package:planta_app/features/plants/domain/repositories/plant_repository.dart';
 import 'package:planta_app/features/plants/domain/usecases/add_plant.dart';
 import 'package:planta_app/features/plants/domain/usecases/delete_plant.dart';
 import 'package:planta_app/features/plants/domain/usecases/get_plants.dart';
 import 'package:planta_app/features/plants/domain/usecases/update_plant.dart';
 import 'package:planta_app/features/plants/domain/usecases/water_plant.dart';
+import 'package:planta_app/features/plants/presentation/bloc/plant_bloc.dart';
+import 'package:planta_app/features/plants/presentation/blocs/switchtheme_cubit.dart';
+
+import 'package:planta_app/firebase_options.dart';
 
 final sl = GetIt.instance;
 
 Future<void> init() async {
-  // Initialize Firebase first
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Register Auth service
+  // Core
   sl.registerLazySingleton<AuthService>(
     () => AuthService(FirebaseAuth.instance),
   );
-
-  // Core
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
   sl.registerLazySingleton(() => InternetConnectionChecker.createInstance());
 
-  //Feature Auth
-  //data: datasource
-  // Datasources
+  // ---------------------------
+  // AUTH FEATURE
+  // ---------------------------
+
   sl.registerLazySingleton<UserDataSource>(
     () => UserDataSourceImpl(authService: sl()),
   );
-  //repository
+
   sl.registerLazySingleton<UserRepository>(
     () => UserRepositoryImpl(
       userDataSource: sl(),
@@ -51,17 +57,11 @@ Future<void> init() async {
       authService: sl(),
     ),
   );
-  //use cases
+
   sl.registerLazySingleton(() => RegisterUserUseCase(sl()));
   sl.registerLazySingleton(() => SignInUserUseCase(sl()));
   sl.registerLazySingleton(() => SignOutUserUseCase(sl()));
-  sl.registerLazySingleton(() => GetPlants(repository: sl()));
-  sl.registerLazySingleton(() => AddPlant(repository: sl()));
-  sl.registerLazySingleton(() => UpdatePlant(repository: sl()));
-  sl.registerLazySingleton(() => DeletePlant(repository: sl()));
-  sl.registerLazySingleton(() => WaterPlant(repository: sl()));
 
-  //Auth Bloc
   sl.registerLazySingleton(
     () => AuthBloc(
       signInUserUseCase: sl(),
@@ -69,22 +69,40 @@ Future<void> init() async {
       authService: sl(),
     ),
   );
-  //Register Bloc
+
   sl.registerLazySingleton(() => RegisterBloc(registerUserUseCase: sl()));
 
+  // ---------------------------
+  // PLANTS FEATURE  (CORRIGÉ)
+  // ---------------------------
+
+  // 1️⃣ Datasource
+  sl.registerLazySingleton<PlantDataSource>(() => PlantDataSourceImpl());
+
+  // 2️⃣ Repository
+  sl.registerLazySingleton<PlantRepository>(
+    () => PlantRepositoryImpl(dataSource: sl()),
+  );
+
+  // 3️⃣ Usecases
+  sl.registerLazySingleton(() => GetPlants(repository: sl()));
+  sl.registerLazySingleton(() => AddPlant(repository: sl()));
+  sl.registerLazySingleton(() => UpdatePlant(repository: sl()));
+  sl.registerLazySingleton(() => DeletePlant(repository: sl()));
+  sl.registerLazySingleton(() => WaterPlant(repository: sl()));
+
+  // 4️⃣ Bloc
   sl.registerLazySingleton(
     () => PlantBloc(
-      getPlants: sl<GetPlants>(),
-      addPlant: sl<AddPlant>(),
-      updatePlant: sl<UpdatePlant>(),
-      deletePlant: sl<DeletePlant>(),
-      waterPlant: sl<WaterPlant>(),
+      getPlants: sl(),
+      addPlant: sl(),
+      updatePlant: sl(),
+      deletePlant: sl(),
+      waterPlant: sl(),
     ),
   );
 
   sl.registerLazySingleton(() => SwitchthemeCubit());
 
-  sl.registerLazySingleton(() => AppRouter(authBloc: sl<AuthBloc>()));
-
-  // Dans la section use cases, AJOUTE :
+  sl.registerLazySingleton(() => AppRouter(authBloc: sl()));
 }

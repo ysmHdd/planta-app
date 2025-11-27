@@ -1,5 +1,5 @@
-// features/plants/presentation/blocs/plant_bloc.dart
 import 'package:bloc/bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // AJOUTE CET IMPORT
 import 'package:planta_app/features/plants/presentation/bloc/plant_event.dart';
 import 'package:planta_app/features/plants/presentation/bloc/plant_state.dart';
 import 'package:planta_app/features/plants/domain/usecases/add_plant.dart';
@@ -51,7 +51,12 @@ class PlantBloc extends Bloc<PlantEvent, PlantState> {
     try {
       await addPlant(event.plant);
       emit(PlantOperationSuccess('Plante ajoutée avec succès!'));
-      add(LoadPlantsEvent(event.plant.userId)); // Recharger la liste
+
+      // CORRECTION : Récupère l'userId depuis FirebaseAuth
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        add(LoadPlantsEvent(user.uid)); // Recharger la liste
+      }
     } catch (e) {
       emit(PlantError('Erreur lors de l\'ajout: $e'));
     }
@@ -64,7 +69,12 @@ class PlantBloc extends Bloc<PlantEvent, PlantState> {
     try {
       await updatePlant(event.plant);
       emit(PlantOperationSuccess('Plante mise à jour!'));
-      add(LoadPlantsEvent(event.plant.userId)); // Recharger la liste
+
+      // CORRECTION : Récupère l'userId depuis FirebaseAuth
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        add(LoadPlantsEvent(user.uid)); // Recharger la liste
+      }
     } catch (e) {
       emit(PlantError('Erreur lors de la mise à jour: $e'));
     }
@@ -77,7 +87,12 @@ class PlantBloc extends Bloc<PlantEvent, PlantState> {
     try {
       await deletePlant(event.plantId);
       emit(PlantOperationSuccess('Plante supprimée!'));
-      // Note: On ne peut pas recharger sans userId, peut-être stocker le userId dans le state
+
+      // CORRECTION : Récupère l'userId depuis FirebaseAuth pour recharger
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        add(LoadPlantsEvent(user.uid));
+      }
     } catch (e) {
       emit(PlantError('Erreur lors de la suppression: $e'));
     }
