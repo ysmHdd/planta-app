@@ -1,6 +1,7 @@
-Planta - Gestionnaire de Plantes
-
-Application Flutter pour gérer l'arrosage de vos plantes.
+Planta - Application Flutter pour gérer l'arrosage de vos plantes.
+Mini-projet cross platform réalisé par:
+- Yasmine Haddad (DSI33)
+- Nour Ben Ammar (DSI33)
 
 Fonctionnalités
 
