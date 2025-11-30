@@ -1,3 +1,5 @@
+// features/plants/presentation/bloc/plant_bloc.dart
+
 import 'package:bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:planta_app/features/plants/presentation/bloc/plant_event.dart';
@@ -11,8 +13,10 @@ import 'package:planta_app/features/plants/domain/usecases/water_plant.dart';
 class PlantBloc extends Bloc<PlantEvent, PlantState> {
   final GetPlants getPlants;
   final AddPlant addPlant;
-  final UpdatePlant updatePlant;
-  final DeletePlant deletePlant;
+  final UpdatePlant
+  updatePlant; // C'est là que l'événement de modification est géré
+  final DeletePlant
+  deletePlant; // C'est là que l'événement de suppression est géré
   final WaterPlant waterPlant;
 
   String? _currentUserId;
@@ -31,7 +35,8 @@ class PlantBloc extends Bloc<PlantEvent, PlantState> {
     on<WaterPlantEvent>(_onWaterPlant);
   }
 
-  // CORRECTION : Méthode simplifiée pour LoadPlants
+  // ... (Les autres méthodes _onLoadPlants et _onAddPlant ne changent pas)
+
   Future<void> _onLoadPlants(
     LoadPlantsEvent event,
     Emitter<PlantState> emit,
@@ -74,13 +79,15 @@ class PlantBloc extends Bloc<PlantEvent, PlantState> {
     }
   }
 
+  // GESTION DE LA MISE À JOUR
   Future<void> _onUpdatePlant(
     UpdatePlantEvent event,
     Emitter<PlantState> emit,
   ) async {
     try {
-      await updatePlant(event.plant);
+      await updatePlant(event.plant); // Appel de l'usecase UpdatePlant
 
+      // Recharge la liste pour afficher les modifications
       if (_currentUserId != null) {
         add(LoadPlantsEvent(_currentUserId!));
       }
@@ -89,13 +96,15 @@ class PlantBloc extends Bloc<PlantEvent, PlantState> {
     }
   }
 
+  // GESTION DE LA SUPPRESSION
   Future<void> _onDeletePlant(
     DeletePlantEvent event,
     Emitter<PlantState> emit,
   ) async {
     try {
-      await deletePlant(event.plantId);
+      await deletePlant(event.plantId); // Appel de l'usecase DeletePlant
 
+      // Recharge la liste pour enlever la plante supprimée
       if (_currentUserId != null) {
         add(LoadPlantsEvent(_currentUserId!));
       }

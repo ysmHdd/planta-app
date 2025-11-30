@@ -7,10 +7,11 @@ import 'package:planta_app/features/auth/presentation/screens/login_screen.dart'
 import 'package:planta_app/features/auth/presentation/screens/profile_screen.dart';
 import 'package:planta_app/features/auth/presentation/screens/register_screen.dart';
 import 'package:planta_app/features/plants/presentation/screens/add_plant_screen.dart';
-import 'package:planta_app/features/plants/presentation/screens/detail_plant_screen.dart';
+
 import 'package:planta_app/features/plants/presentation/screens/edit_plant_screen.dart';
 import 'package:planta_app/features/plants/presentation/screens/plants_list_screen.dart';
 import 'package:planta_app/features/plants/presentation/widgets/toolbar_action_theme_widget.dart';
+import 'package:planta_app/features/plants/domain/entities/plant_entity.dart';
 
 class AppRouter {
   final AuthBloc authBloc;
@@ -97,22 +98,39 @@ class AppRouter {
               return const AddPlantScreen(); // ← SUPPRIME la logique user
             },
           ),
+
+          // Votre fichier de configuration GoRouter (ex: app_router.dart)
+
+          // ... autres GoRoute ...
           GoRoute(
-            path: AppRoutes.detailPlant,
-            name: 'detail_plant',
-            builder: (context, state) {
-              final plantId = state.pathParameters['id'] ?? '';
-              return DetailPlantScreen(plantId: plantId);
-            },
-          ),
-          GoRoute(
+            // Assurez-vous que la variable AppRoutes.editPlant est bien définie,
+            // par exemple : static const String editPlant = '/edit-plant';
             path: AppRoutes.editPlant,
             name: 'edit_plant',
             builder: (context, state) {
-              final plantId = state.pathParameters['id'] ?? '';
-              return EditPlantScreen(plantId: plantId);
+              // Tente de récupérer l'objet PlantEntity passé en 'extra'
+              final plant = state.extra as PlantEntity?;
+
+              // Gestion d'erreur si la navigation est appelée sans l'objet requis
+              if (plant == null) {
+                return const Scaffold(
+                  body: Center(
+                    child: Text(
+                      'Erreur: La plante n\'a pas été passée à l\'écran de modification.',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                );
+              }
+
+              // 💡 CORRECTION ESSENTIELLE : Retourner le widget de l'écran d'édition
+              // (Vous devrez importer ce widget)
+              return EditPlantScreen(plant: plant);
             },
           ),
+          // ... suite des GoRoute ...
+
+          // ... autres GoRoute ...
           GoRoute(
             path: AppRoutes.profile,
             name: 'profile',
