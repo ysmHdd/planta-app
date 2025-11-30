@@ -1,25 +1,25 @@
-# Planta - Gestionnaire de Plantes
+Planta - Gestionnaire de Plantes
 
 Application Flutter pour gérer l'arrosage de vos plantes.
 
-## Fonctionnalités
+Fonctionnalités
 
 - Ajouter/supprimer des plantes
 - Rappels d'arrosage
 - Authentification utilisateur
 - Thème sombre/clair
 
-## Technologies
+Technologies
 
-- Flutter 3.x
+- Flutter
 - Firebase Auth & Firestore
 - BLoC Pattern
 - Clean Architecture
 
-## Installation
+Installation
 
 ```bash
-git clone https://github.com/TON_USERNAME/planta-app.git
+git clone https://github.com/ysmHdd/planta-app.git
 cd planta-app
 flutter pub get
 flutter run
