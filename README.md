@@ -8,7 +8,6 @@ Fonctionnalités
 - Ajouter/supprimer des plantes
 - Rappels d'arrosage
 - Authentification utilisateur
-- Thème sombre/clair
 
 Technologies
 
