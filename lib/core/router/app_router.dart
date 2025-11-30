@@ -11,7 +11,6 @@ import 'package:planta_app/features/plants/presentation/screens/detail_plant_scr
 import 'package:planta_app/features/plants/presentation/screens/edit_plant_screen.dart';
 import 'package:planta_app/features/plants/presentation/screens/plants_list_screen.dart';
 import 'package:planta_app/features/plants/presentation/widgets/toolbar_action_theme_widget.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class AppRouter {
   final AuthBloc authBloc;
@@ -45,15 +44,13 @@ class AppRouter {
         builder: (context, state, child) {
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Planta 🌱'), // ← CHANGÉ: Nom de l'app
+              title: const Text('Planta 🌱'),
               actions: [
                 const ActionThemeButton(),
                 IconButton(
                   onPressed: () {
                     BlocProvider.of<AuthBloc>(context).add(LogoutEvent());
-                    context.go(
-                      AppRoutes.login,
-                    ); // ← AJOUT: Redirection après logout
+                    context.go(AppRoutes.login);
                   },
                   icon: const Icon(Icons.logout),
                 ),
@@ -65,7 +62,7 @@ class AppRouter {
               onTap: (index) {
                 switch (index) {
                   case 0:
-                    context.go(AppRoutes.plants); // ← CHANGÉ
+                    context.go(AppRoutes.plants);
                     break;
                   case 1:
                     context.go(AppRoutes.profile);
@@ -74,12 +71,12 @@ class AppRouter {
               },
               items: const [
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.eco), // ← CHANGÉ: Icône plantes
-                  label: 'Mes Plantes', // ← CHANGÉ: Label
+                  icon: Icon(Icons.eco),
+                  label: 'Mes Plantes',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.person),
-                  label: 'Profil', // ← CHANGÉ: Français
+                  label: 'Profil',
                 ),
               ],
             ),
@@ -87,39 +84,21 @@ class AppRouter {
         },
         routes: [
           GoRoute(
-            path: AppRoutes.plants, // ← CHANGÉ: plants au lieu de home
+            path: AppRoutes.plants,
             name: 'plants',
             builder: (context, state) {
-              // Récupérer l'userId depuis l'état d'authentification
-              final authState = context.read<AuthBloc>().state;
-              if (authState is AuthenticatedState) {
-                return PlantsListScreen(userId: authState.userId);
-              }
-              return const PlantsListScreen(userId: ''); // Fallback
+              return const PlantsListScreen(); // ← SUPPRIME le userId
             },
           ),
           GoRoute(
             path: AppRoutes.addPlant,
             name: 'add_plant',
             builder: (context, state) {
-              // Vérifie directement avec FirebaseAuth au lieu du AuthBloc
-              final user = FirebaseAuth.instance.currentUser;
-              if (user != null) {
-                return AddPlantScreen(); // Plus besoin de passer userId
-              }
-
-              // Si l'utilisateur n'est pas connecté, redirige vers la page de connexion
-              return const Scaffold(
-                body: Center(
-                  child: Text(
-                    'Veuillez vous connecter pour ajouter une plante',
-                  ),
-                ),
-              );
+              return const AddPlantScreen(); // ← SUPPRIME la logique user
             },
           ),
           GoRoute(
-            path: AppRoutes.detailPlant, // ← CHANGÉ: detail_plant
+            path: AppRoutes.detailPlant,
             name: 'detail_plant',
             builder: (context, state) {
               final plantId = state.pathParameters['id'] ?? '';
@@ -127,7 +106,7 @@ class AppRouter {
             },
           ),
           GoRoute(
-            path: AppRoutes.editPlant, // ← CHANGÉ: edit_plant
+            path: AppRoutes.editPlant,
             name: 'edit_plant',
             builder: (context, state) {
               final plantId = state.pathParameters['id'] ?? '';
@@ -162,7 +141,7 @@ class AppRouter {
 }
 
 int _calculateIndex(String location) {
-  if (location.startsWith('/plants')) return 0; // ← CHANGÉ
+  if (location.startsWith('/plants')) return 0;
   if (location.startsWith('/profile')) return 1;
   return 0;
 }

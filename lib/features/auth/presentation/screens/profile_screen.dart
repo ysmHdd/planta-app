@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:planta_app/features/auth/domain/usecases/sign_out_user.dart';
 import 'package:planta_app/features/auth/presentation/blocs/auth/auth_bloc.dart';
 
 class ProfileScreen extends StatelessWidget {

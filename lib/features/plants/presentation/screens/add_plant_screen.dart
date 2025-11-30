@@ -163,36 +163,26 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
 
       final wateringInterval = int.parse(_intervalController.text);
 
-      // CORRECTION : Initialisation correcte pour avoir "À arroser aujourd'hui"
+      // CORRECTION : Logique correcte
       final plant = PlantEntity(
         id: '',
         name: _nameController.text,
         type: _typeController.text,
         wateringInterval: wateringInterval,
-        // CORRECTION : La plante a été arrosée il y a X jours, pas aujourd'hui
-        lastWatered: DateTime.now().subtract(Duration(days: wateringInterval)),
-        nextWatering: DateTime.now(), // À arroser aujourd'hui
+        // Dernier arrosage : MAINTENANT (quand on ajoute la plante)
+        lastWatered: DateTime.now(),
+        // Prochain arrosage : aujourd'hui + intervalle
+        nextWatering: DateTime.now().add(Duration(days: wateringInterval)),
         imageUrl: _selectedImageUrl,
         userId: user.uid,
       );
 
-      print('🌱 DEBUG - Nouvelle plante créée:');
-      print('   - Nom: ${plant.name}');
-      print('   - Intervalle: ${plant.wateringInterval} jours');
+      print('🌱 DEBUG - Nouvelle plante:');
       print('   - LastWatered: ${plant.lastWatered}');
       print('   - NextWatering: ${plant.nextWatering}');
-      print('   - Statut: ${plant.wateringStatus}');
-      print('   - UserId: ${plant.userId}');
+      print('   - Statut: ${plant.wateringStatus}'); // ← Doit être "watered"
 
       context.read<PlantBloc>().add(AddPlantEvent(plant));
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Plante ajoutée avec succès !'),
-          backgroundColor: Colors.green,
-        ),
-      );
-
       Navigator.pop(context);
     }
   }

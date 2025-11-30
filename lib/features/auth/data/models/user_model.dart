@@ -3,18 +3,12 @@ import 'package:planta_app/features/auth/domain/entities/user_entity.dart';
 
 class UserModel extends UserEntity {
   const UserModel({
-    String? uid,
-    required String name,
-    required String email,
+    super.uid,
+    required super.name,
+    required super.email,
     required String? profileURL,
-    required String password,
-  }) : super(
-         uid: uid,
-         name: name,
-         email: email,
-         profilURL: profileURL,
-         password: password,
-       );
+    required super.password,
+  }) : super(profilURL: profileURL);
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(

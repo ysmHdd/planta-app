@@ -17,16 +17,16 @@ class UserDataSourceImpl implements UserDataSource {
   @override
   Future<UserCredential> registerUser(UserModel userModel) {
     return authService.signUpWithEmailAndPassword(
-      email: userModel.email!,
-      password: userModel.password!,
+      email: userModel.email,
+      password: userModel.password,
     );
   }
 
   @override
   Future<UserCredential> signInUser(UserModel userModel) {
     return authService.signInWithEmailAndPassword(
-      email: userModel.email!,
-      password: userModel.password!,
+      email: userModel.email,
+      password: userModel.password,
     );
   }
 
