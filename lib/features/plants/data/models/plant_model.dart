@@ -14,7 +14,6 @@ class PlantModel extends PlantEntity {
     required super.userId,
   });
 
-  // Convertir vers Map pour Firebase
   Map<String, dynamic> toMap() {
     return {
       'name': name,
@@ -28,7 +27,6 @@ class PlantModel extends PlantEntity {
     };
   }
 
-  // Créer depuis Map (depuis Firebase)
   factory PlantModel.fromMap(Map<String, dynamic> map, String id) {
     return PlantModel(
       id: id,
@@ -42,7 +40,6 @@ class PlantModel extends PlantEntity {
     );
   }
 
-  // Convertir Entity en Model
   factory PlantModel.fromEntity(PlantEntity entity) {
     return PlantModel(
       id: entity.id,
@@ -56,7 +53,6 @@ class PlantModel extends PlantEntity {
     );
   }
 
-  // NOUVEAU : Méthode pour arroser la plante (retourne une nouvelle instance)
   PlantModel waterPlant() {
     final now = DateTime.now();
     return PlantModel(

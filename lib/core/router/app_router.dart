@@ -7,10 +7,9 @@ import 'package:planta_app/features/auth/presentation/screens/login_screen.dart'
 import 'package:planta_app/features/auth/presentation/screens/profile_screen.dart';
 import 'package:planta_app/features/auth/presentation/screens/register_screen.dart';
 import 'package:planta_app/features/plants/presentation/screens/add_plant_screen.dart';
-
 import 'package:planta_app/features/plants/presentation/screens/edit_plant_screen.dart';
 import 'package:planta_app/features/plants/presentation/screens/plants_list_screen.dart';
-import 'package:planta_app/features/plants/presentation/widgets/toolbar_action_theme_widget.dart';
+// NOTE: ToolbarActionThemeWidget est retiré car le thème sombre est retiré.
 import 'package:planta_app/features/plants/domain/entities/plant_entity.dart';
 
 class AppRouter {
@@ -27,33 +26,41 @@ class AppRouter {
       final currentLocation = state.matchedLocation;
 
       final loggingIn =
-          currentLocation == '/login' || currentLocation == '/register';
+          currentLocation == AppRoutes.login ||
+          currentLocation == AppRoutes.register;
 
       if (authState is UnAuthenticatedState && !loggingIn) {
-        return '/login';
+        return AppRoutes.login;
       }
 
       if (authState is AuthenticatedState && loggingIn) {
-        return '/plants';
+        return AppRoutes.plants;
       }
 
       return null;
     },
     routes: [
-      //Shell for main application layout
+      // Shell for main application layout (Réintroduire BottomNavigationBar pour la stabilité)
       ShellRoute(
         builder: (context, state, child) {
+          // Fonction locale pour déterminer l'index actif
+          int _calculateIndex(String location) {
+            if (location.startsWith(AppRoutes.plants)) return 0;
+            if (location.startsWith(AppRoutes.profile)) return 1;
+            return 0;
+          }
+
           return Scaffold(
             appBar: AppBar(
               title: const Text('Planta 🌱'),
               actions: [
-                const ActionThemeButton(),
+                // Uniquement le bouton de déconnexion pour la stabilité
                 IconButton(
                   onPressed: () {
                     BlocProvider.of<AuthBloc>(context).add(LogoutEvent());
                     context.go(AppRoutes.login);
                   },
-                  icon: const Icon(Icons.logout),
+                  icon: const Icon(Icons.power_settings_new),
                 ),
               ],
             ),
@@ -84,53 +91,49 @@ class AppRouter {
           );
         },
         routes: [
+          // Liste des plantes (Root of the Shell)
           GoRoute(
             path: AppRoutes.plants,
             name: 'plants',
             builder: (context, state) {
-              return const PlantsListScreen(); // ← SUPPRIME le userId
+              return const PlantsListScreen();
             },
+            // Si vous avez des sous-routes (Détails), elles doivent être ici !
+            /* routes: [
+              GoRoute(
+                path: 'details/:id',
+                name: 'plant_details',
+                builder: (context, state) => const PlantDetailsScreen(),
+              ),
+            ]
+            */
           ),
+
+          // Ajouter une plante
           GoRoute(
             path: AppRoutes.addPlant,
             name: 'add_plant',
             builder: (context, state) {
-              return const AddPlantScreen(); // ← SUPPRIME la logique user
+              return const AddPlantScreen();
             },
           ),
 
-          // Votre fichier de configuration GoRouter (ex: app_router.dart)
-
-          // ... autres GoRoute ...
+          // Modifier une plante
           GoRoute(
-            // Assurez-vous que la variable AppRoutes.editPlant est bien définie,
-            // par exemple : static const String editPlant = '/edit-plant';
             path: AppRoutes.editPlant,
             name: 'edit_plant',
             builder: (context, state) {
-              // Tente de récupérer l'objet PlantEntity passé en 'extra'
               final plant = state.extra as PlantEntity?;
-
-              // Gestion d'erreur si la navigation est appelée sans l'objet requis
               if (plant == null) {
                 return const Scaffold(
-                  body: Center(
-                    child: Text(
-                      'Erreur: La plante n\'a pas été passée à l\'écran de modification.',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  ),
+                  body: Center(child: Text('Erreur: Plant manquante.')),
                 );
               }
-
-              // 💡 CORRECTION ESSENTIELLE : Retourner le widget de l'écran d'édition
-              // (Vous devrez importer ce widget)
               return EditPlantScreen(plant: plant);
             },
           ),
-          // ... suite des GoRoute ...
 
-          // ... autres GoRoute ...
+          // Profil
           GoRoute(
             path: AppRoutes.profile,
             name: 'profile',
@@ -140,6 +143,7 @@ class AppRouter {
           ),
         ],
       ),
+      // Routes non-protégées (Hors Shell)
       GoRoute(
         path: AppRoutes.login,
         name: 'login',
@@ -156,12 +160,6 @@ class AppRouter {
       ),
     ],
   );
-}
-
-int _calculateIndex(String location) {
-  if (location.startsWith('/plants')) return 0;
-  if (location.startsWith('/profile')) return 1;
-  return 0;
 }
 
 class GoRouterRefreshNotifier extends ChangeNotifier {

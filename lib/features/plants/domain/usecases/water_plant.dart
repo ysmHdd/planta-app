@@ -7,7 +7,7 @@ class WaterPlant {
   WaterPlant({required this.repository});
 
   Future<void> call(String plantId) {
-    final wateringDate = DateTime.now(); // Date actuelle pour l'arrosage
+    final wateringDate = DateTime.now();
     return repository.waterPlant(plantId, wateringDate);
   }
 }

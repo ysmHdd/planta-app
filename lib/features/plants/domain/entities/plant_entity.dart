@@ -20,17 +20,14 @@ class PlantEntity {
     required this.userId,
   });
 
-  // Méthode pour calculer le prochain arrosage
   DateTime calculateNextWatering() {
     return lastWatered.add(Duration(days: wateringInterval));
   }
 
-  // Vérifier si la plante a besoin d'être arrosée (ancienne méthode)
   bool needsWatering() {
     return DateTime.now().isAfter(nextWatering);
   }
 
-  // NOUVEAU : Statuts d'arrosage détaillés
   WateringStatus get wateringStatus {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -49,14 +46,12 @@ class PlantEntity {
     }
   }
 
-  // NOUVEAU : Calculer les jours de retard
   int get daysOverdue {
     if (wateringStatus != WateringStatus.overdue) return 0;
     final now = DateTime.now();
     return now.difference(nextWatering).inDays;
   }
 
-  // NOUVEAU : Jours restants avant prochain arrosage
   int get daysUntilNextWatering {
     if (wateringStatus != WateringStatus.watered) return 0;
     final now = DateTime.now();
@@ -64,9 +59,4 @@ class PlantEntity {
   }
 }
 
-// NOUVEAU : Enum des statuts
-enum WateringStatus {
-  watered, // Déjà arrosée
-  dueToday, // À arroser aujourd'hui
-  overdue, // En retard
-}
+enum WateringStatus { watered, dueToday, overdue }

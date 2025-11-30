@@ -6,10 +6,7 @@ abstract class PlantDataSource {
   Future<String> addPlant(PlantModel plantModel);
   Future<void> updatePlant(PlantModel plantModel);
   Future<void> deletePlant(String plantId);
-  Future<void> waterPlant(
-    String plantId,
-    DateTime wateringDate,
-  ); // ← MODIFIÉ ICI
+  Future<void> waterPlant(String plantId, DateTime wateringDate);
   Stream<List<PlantModel>> getPlants(String userId);
 }
 
@@ -24,7 +21,6 @@ class PlantDataSourceImpl implements PlantDataSource {
       throw Exception('Utilisateur non connecté');
     }
 
-    // CRÉE UNE NOUVELLE PLANTE AVEC LE USER_ID
     final plantWithUser = PlantModel(
       id: plantModel.id,
       name: plantModel.name,
@@ -33,7 +29,7 @@ class PlantDataSourceImpl implements PlantDataSource {
       lastWatered: plantModel.lastWatered,
       nextWatering: plantModel.nextWatering,
       imageUrl: plantModel.imageUrl,
-      userId: user.uid, // ← LE USER_ID ICI !
+      userId: user.uid,
     );
 
     final docRef = await _firestore
@@ -57,24 +53,18 @@ class PlantDataSourceImpl implements PlantDataSource {
 
   @override
   Future<void> waterPlant(String plantId, DateTime wateringDate) async {
-    // ← MODIFIÉ ICI
     try {
-      // 1. Récupérer la plante actuelle
       final doc = await _firestore.collection('plants').doc(plantId).get();
       if (doc.exists) {
         final plantData = doc.data()!;
 
-        // 2. Calculer les nouvelles dates avec la date passée en paramètre
         final int wateringInterval = plantData['wateringInterval'] ?? 7;
         final DateTime nextWatering = wateringDate.add(
           Duration(days: wateringInterval),
         );
 
-        // 3. Mettre à jour la plante
         await _firestore.collection('plants').doc(plantId).update({
-          'lastWatered': Timestamp.fromDate(
-            wateringDate,
-          ), // ← UTILISE wateringDate
+          'lastWatered': Timestamp.fromDate(wateringDate),
           'nextWatering': Timestamp.fromDate(nextWatering),
           'updatedAt': FieldValue.serverTimestamp(),
         });

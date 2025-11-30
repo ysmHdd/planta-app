@@ -22,7 +22,6 @@ class UserRepositoryImpl implements UserRepository {
 
   @override
   Future<Either<Failure, Unit>> registerUser(UserEntity user) async {
-    //Adapter entity -> model
     UserModel userModel = UserModel(
       uid: user.uid,
       name: user.name,
@@ -53,7 +52,6 @@ class UserRepositoryImpl implements UserRepository {
 
   @override
   Future<Either<Failure, Unit>> signIn(UserEntity user) async {
-    //Adapter
     UserModel userModel = UserModel(
       uid: user.uid,
       name: user.name,

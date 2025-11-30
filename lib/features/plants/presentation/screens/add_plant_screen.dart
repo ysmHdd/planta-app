@@ -17,11 +17,8 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
   final _nameController = TextEditingController();
   final _typeController = TextEditingController();
   final _intervalController = TextEditingController(text: '7');
-
-  // Contrôleur pour le nouveau champ URL
   final _imageUrlController = TextEditingController();
 
-  // Utilisé pour l'affichage de l'aperçu
   String? _selectedImageUrl;
 
   @override
@@ -29,12 +26,10 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
     _nameController.dispose();
     _typeController.dispose();
     _intervalController.dispose();
-    _imageUrlController
-        .dispose(); // Ne pas oublier de disposer le nouveau contrôleur
+    _imageUrlController.dispose();
     super.dispose();
   }
 
-  // --- NOUVELLE MÉTHODE : Afficher la boîte de dialogue pour l'URL ---
   void _showUrlInputDialog() {
     final tempController = TextEditingController(
       text: _imageUrlController.text,
@@ -61,7 +56,6 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
             ),
             TextButton(
               onPressed: () {
-                // Met à jour l'URL et déclenche la reconstruction pour l'aperçu
                 setState(() {
                   _imageUrlController.text = tempController.text;
                   _selectedImageUrl = tempController.text.isNotEmpty
@@ -87,13 +81,11 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
-        // Ajouter SingleChildScrollView
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
             children: [
-              // --- 1. CHAMPS IMAGE (Remplacé par l'aperçu et le bouton) ---
               Stack(
                 alignment: Alignment.center,
                 children: [
@@ -113,7 +105,6 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                             child: Image.network(
                               _selectedImageUrl!,
                               fit: BoxFit.cover,
-                              // Gérer le cas où l'URL est invalide
                               errorBuilder: (context, error, stackTrace) =>
                                   Center(
                                     child: Text(
@@ -139,7 +130,6 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                             ],
                           ),
                   ),
-                  // Optionnel: Bouton pour effacer l'image
                   if (_selectedImageUrl != null &&
                       _selectedImageUrl!.isNotEmpty)
                     Positioned(
@@ -161,8 +151,6 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-
-              // --- 2. CHAMP TEXTE POUR L'URL ---
               TextFormField(
                 controller: _imageUrlController,
                 decoration: InputDecoration(
@@ -172,20 +160,16 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.paste),
-                    onPressed:
-                        _showUrlInputDialog, // Ouvre la boîte de dialogue
+                    onPressed: _showUrlInputDialog,
                   ),
                 ),
                 onChanged: (value) {
-                  // Mettre à jour l'aperçu en temps réel (ou presque)
                   setState(() {
                     _selectedImageUrl = value.isNotEmpty ? value : null;
                   });
                 },
               ),
               const SizedBox(height: 16),
-
-              // --- CHAMPS EXISTANTS ---
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
@@ -201,7 +185,6 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                 },
               ),
               const SizedBox(height: 16),
-
               TextFormField(
                 controller: _typeController,
                 decoration: const InputDecoration(
@@ -217,7 +200,6 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                 },
               ),
               const SizedBox(height: 16),
-
               TextFormField(
                 controller: _intervalController,
                 decoration: const InputDecoration(
@@ -237,7 +219,6 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
                 },
               ),
               const SizedBox(height: 32),
-
               ElevatedButton(
                 onPressed: _addPlant,
                 style: ElevatedButton.styleFrom(
@@ -269,8 +250,6 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
       }
 
       final wateringInterval = int.parse(_intervalController.text);
-
-      // La vérification de l'URL est maintenant basée sur le contrôleur de texte
       final imageUrl = _imageUrlController.text.trim().isNotEmpty
           ? _imageUrlController.text.trim()
           : null;
@@ -282,13 +261,9 @@ class _AddPlantScreenState extends State<AddPlantScreen> {
         wateringInterval: wateringInterval,
         lastWatered: DateTime.now(),
         nextWatering: DateTime.now().add(Duration(days: wateringInterval)),
-        imageUrl: imageUrl, // <-- UTILISATION DE LA NOUVELLE VALEUR
+        imageUrl: imageUrl,
         userId: user.uid,
       );
-
-      print('🌱 DEBUG - Nouvelle plante:');
-      print('  - Image URL: ${plant.imageUrl}');
-      print('  - LastWatered: ${plant.lastWatered}');
 
       context.read<PlantBloc>().add(AddPlantEvent(plant));
       Navigator.pop(context);

@@ -1,13 +1,12 @@
-// features/plants/presentation/screens/plants_list_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
+import 'package:planta_app/core/router/routes.dart';
 import 'package:planta_app/features/plants/presentation/bloc/plant_bloc.dart';
 import 'package:planta_app/features/plants/presentation/bloc/plant_state.dart';
 import 'package:planta_app/features/plants/presentation/bloc/plant_event.dart';
 import 'package:planta_app/features/plants/domain/entities/plant_entity.dart';
-import 'add_plant_screen.dart';
 
 class PlantsListScreen extends StatefulWidget {
   const PlantsListScreen({super.key});
@@ -23,8 +22,17 @@ class _PlantsListScreenState extends State<PlantsListScreen>
   @override
   void initState() {
     super.initState();
-    // Initialisation du TabController pour 3 onglets
+
     _tabController = TabController(length: 3, vsync: this);
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final plantBloc = context.read<PlantBloc>();
+
+      if (plantBloc.state is! PlantLoaded) {
+        plantBloc.add(LoadPlantsEvent(user.uid));
+      }
+    }
   }
 
   @override
@@ -33,13 +41,8 @@ class _PlantsListScreenState extends State<PlantsListScreen>
     super.dispose();
   }
 
-  // --- Méthodes de Navigation et d'Action (Identiques) ---
-
   void _navigateToAddPlant(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const AddPlantScreen()),
-    );
+    context.go(AppRoutes.addPlant);
   }
 
   void _navigateToEditPlant(BuildContext context, PlantEntity plant) {
@@ -81,8 +84,6 @@ class _PlantsListScreenState extends State<PlantsListScreen>
     context.read<PlantBloc>().add(WaterPlantEvent(plantId));
   }
 
-  // --- Widget d'Aide pour l'Information de Date (Identique) ---
-
   Widget _buildDateInfo({
     required IconData icon,
     required String label,
@@ -117,8 +118,6 @@ class _PlantsListScreenState extends State<PlantsListScreen>
     );
   }
 
-  // --- Widget pour la Carte de la Plante (Remplaçant l'ItemBuilder) ---
-
   Widget _buildPlantCard(PlantEntity plant) {
     final theme = Theme.of(context);
     final status = plant.wateringStatus;
@@ -142,17 +141,6 @@ class _PlantsListScreenState extends State<PlantsListScreen>
           return 'Aujourd\'hui : Arrosage nécessaire';
         case WateringStatus.watered:
           return 'Au sec : Arrosé récemment';
-      }
-    }
-
-    IconData getStatusIcon() {
-      switch (status) {
-        case WateringStatus.overdue:
-          return Icons.warning_amber_rounded;
-        case WateringStatus.dueToday:
-          return Icons.water_drop;
-        case WateringStatus.watered:
-          return Icons.check_circle_outline;
       }
     }
 
@@ -211,18 +199,12 @@ class _PlantsListScreenState extends State<PlantsListScreen>
             ],
           ),
 
-          // ⚠️ BOUTONS COMPACTÉS ET CORRIGÉS
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 1. Bouton Arroser/OK
               if (actionRequired)
                 IconButton(
-                  icon: Icon(
-                    Icons.opacity,
-                    color: statusColor,
-                    size: 24, // Taille réduite
-                  ),
+                  icon: Icon(Icons.opacity, color: statusColor, size: 24),
                   tooltip: 'Marquer comme arrosé',
                   onPressed: () => _waterPlant(context, plant.id),
                 )
@@ -230,18 +212,17 @@ class _PlantsListScreenState extends State<PlantsListScreen>
                 Icon(
                   Icons.spa_outlined,
                   color: Colors.green.shade400,
-                  size: 24, // Taille réduite
+                  size: 24,
                 ),
 
-              const SizedBox(width: 4), // Espace réduit
-              // 2. Bouton Modifier ✏️
+              const SizedBox(width: 4),
+
               IconButton(
                 icon: const Icon(Icons.edit, color: Colors.blue, size: 24),
                 tooltip: 'Modifier',
                 onPressed: () => _navigateToEditPlant(context, plant),
               ),
 
-              // 3. Bouton Supprimer 🗑️
               IconButton(
                 icon: const Icon(Icons.delete, color: Colors.red, size: 24),
                 tooltip: 'Supprimer',
@@ -253,8 +234,6 @@ class _PlantsListScreenState extends State<PlantsListScreen>
       ),
     );
   }
-
-  // --- Widget de Liste (Séparé par statut) ---
 
   Widget _buildPlantListByStatus(
     List<PlantEntity> plants,
@@ -292,82 +271,76 @@ class _PlantsListScreenState extends State<PlantsListScreen>
     );
   }
 
-  // --- Widget Principal ---
-
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      // (Code d'erreur de connexion...)
-      return const Scaffold(
-        body: Center(child: Text('Erreur: Utilisateur non connecté')),
-      );
-    }
-
-    final userId = user.uid;
-    final plantBloc = context.read<PlantBloc>();
-    final currentState = plantBloc.state;
-
-    if (currentState is! PlantLoaded) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        plantBloc.add(LoadPlantsEvent(userId));
-      });
+      return const Center(child: Text('Erreur: Utilisateur non connecté'));
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mes Plantes'),
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: Colors.black,
-          indicatorColor: Colors.green.shade700,
-          tabs: const [
-            Tab(text: 'Retard'),
-            Tab(text: 'Aujourd\'hui'),
-            Tab(text: 'Arrosé'),
-          ],
-        ),
-      ),
-
-      body: BlocBuilder<PlantBloc, PlantState>(
-        builder: (context, state) {
-          if (state is PlantLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is PlantError) {
-            return Center(child: Text('Erreur: ${state.message}'));
-          } else if (state is PlantLoaded) {
-            final plants = state.plants;
-
-            if (plants.isEmpty) {
-              // (Écran pour l'état vide)
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.spa, size: 90, color: Colors.green.shade300),
-                    const SizedBox(height: 24),
-                    const Text('Votre jardin est vide !'),
-                  ],
-                ),
-              );
-            }
-
-            return TabBarView(
+      body: Column(
+        children: [
+          PreferredSize(
+            preferredSize: const Size.fromHeight(kToolbarHeight),
+            child: TabBar(
               controller: _tabController,
-              children: [
-                // Onglet 1 : Retard (Overdue)
-                _buildPlantListByStatus(plants, WateringStatus.overdue),
-                // Onglet 2 : Aujourd'hui (DueToday)
-                _buildPlantListByStatus(plants, WateringStatus.dueToday),
-                // Onglet 3 : Arrosé (Watered)
-                _buildPlantListByStatus(plants, WateringStatus.watered),
+              labelColor:
+                  Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+              indicatorColor: Colors.green.shade700,
+              tabs: const [
+                Tab(text: 'Retard'),
+                Tab(text: 'Aujourd\'hui'),
+                Tab(text: 'Arrosé'),
               ],
-            );
-          } else {
-            return const Center(child: CircularProgressIndicator());
-          }
-        },
+            ),
+          ),
+
+          Expanded(
+            child: BlocBuilder<PlantBloc, PlantState>(
+              builder: (context, state) {
+                if (state is PlantLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (state is PlantError) {
+                  return Center(child: Text('Erreur: ${state.message}'));
+                } else if (state is PlantLoaded) {
+                  final plants = state.plants;
+
+                  if (plants.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.spa,
+                            size: 90,
+                            color: Colors.green.shade300,
+                          ),
+                          const SizedBox(height: 24),
+                          const Text('Votre jardin est vide !'),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildPlantListByStatus(plants, WateringStatus.overdue),
+
+                      _buildPlantListByStatus(plants, WateringStatus.dueToday),
+
+                      _buildPlantListByStatus(plants, WateringStatus.watered),
+                    ],
+                  );
+                } else {
+                  return const Center(child: CircularProgressIndicator());
+                }
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _navigateToAddPlant(context),

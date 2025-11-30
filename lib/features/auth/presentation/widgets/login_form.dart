@@ -28,85 +28,6 @@ class LoginFormState extends State<LoginForm> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-            child: TextFormField(
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'le email est obligatoire'; //dans le dossier Strings
-                }
-                if (!isEmail(value)) {
-                  return "email incorrect";
-                }
-                return null;
-              },
-              keyboardType: TextInputType.emailAddress,
-              controller: _emailController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Entrer votre email',
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-            child: TextFormField(
-              obscureText: true,
-              enableSuggestions: false,
-              autocorrect: false,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'le mot de passe est obligatoire'; //!! dans Strings
-                }
-                return null;
-              },
-              controller: _pwdController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Entrer votre mot de passe',
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
-
-            child: Column(
-              children: [
-                BlocBuilder<AuthBloc, AuthState>(
-                  builder: (context, state) {
-                    if (state is LoginPendingState) {
-                      return const CircularProgressIndicator(
-                        color: Colors.blue,
-                      );
-                    } else {
-                      return AuthButton(
-                        text: "Login",
-                        onPressed: validateAndLoginUser,
-                        color: Colors.blue,
-                      );
-                    }
-                  },
-                ),
-                const SizedBox(height: 12),
-                AuthButton(
-                  text: "Register",
-                  onPressed: () => GoRouter.of(context).goNamed('register'),
-                  color: Colors.green,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   void validateAndLoginUser() {
     if (_formKey.currentState!.validate()) {
       final user = UserEntity(
@@ -117,5 +38,106 @@ class LoginFormState extends State<LoginForm> {
 
       BlocProvider.of<AuthBloc>(context).add(LoginEvent(user: user));
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            child: TextFormField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(
+                labelText: 'Adresse e-mail',
+                prefixIcon: const Icon(
+                  Icons.email_outlined,
+                  color: Colors.blue,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: const BorderSide(color: Colors.blue, width: 2.0),
+                ),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'L\'e-mail est obligatoire';
+                }
+                if (!isEmail(value)) {
+                  return "Format d'e-mail incorrect";
+                }
+                return null;
+              },
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            child: TextFormField(
+              controller: _pwdController,
+              obscureText: true,
+              enableSuggestions: false,
+              autocorrect: false,
+              decoration: InputDecoration(
+                labelText: 'Mot de passe',
+                prefixIcon: const Icon(Icons.lock_outline, color: Colors.blue),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: const BorderSide(color: Colors.blue, width: 2.0),
+                ),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Le mot de passe est obligatoire';
+                }
+                return null;
+              },
+            ),
+          ),
+
+          // Zone des Boutons
+          Padding(
+            padding: const EdgeInsets.only(top: 30, left: 24, right: 24),
+            child: Column(
+              children: [
+                BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, state) {
+                    if (state is LoginPendingState) {
+                      return const CircularProgressIndicator(
+                        color: Colors.blue,
+                      );
+                    } else {
+                      return AuthButton(
+                        text: "CONNEXION",
+                        onPressed: validateAndLoginUser,
+                        color: Colors.blue,
+                      );
+                    }
+                  },
+                ),
+
+                const SizedBox(height: 16),
+
+                AuthButton(
+                  text: "INSCRIPTION",
+                  onPressed: () => GoRouter.of(context).goNamed('register'),
+                  color: Colors.green,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
